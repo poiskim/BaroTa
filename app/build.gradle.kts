@@ -25,7 +25,7 @@ android {
         versionCode = 3
         versionName = "0.3.0"
         buildConfigField("String", "GBIS_SERVICE_KEY", "\"${gbisKey.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
-        buildConfigField("String", "TAGO_SERVICE_KEY", "\\\"" + tagoKey.replace("\\", "\\\\").replace("\"", "\\\"") + "\\\"")
+        buildConfigField("String", "TAGO_SERVICE_KEY", "\"${tagoKey.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
     }
 
     buildTypes {
