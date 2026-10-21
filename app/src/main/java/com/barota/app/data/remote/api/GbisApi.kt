@@ -42,7 +42,10 @@ class GbisApi(private val serviceKey: String) {
             try {
                 val code = connection.responseCode
                 if (code !in 200..299) {
-                    throw GbisApiException("GBIS 서버가 HTTP $code 오류를 반환했어요. 키·승인 상태를 확인해 주세요.")
+                    val errorBody = connection.errorStream
+                        ?.bufferedReader(Charsets.UTF_8)
+                        ?.use { it.readText().take(4_096) }
+                    throw GbisApiException(GbisGatewayError.message(code, errorBody))
                 }
                 connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
             } catch (ex: GbisApiException) {
