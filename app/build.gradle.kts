@@ -22,8 +22,8 @@ android {
         applicationId = "com.barota.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.3.0"
+        versionCode = 4
+        versionName = "0.4.0"
         buildConfigField("String", "GBIS_SERVICE_KEY", "\"${gbisKey.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
         buildConfigField("String", "TAGO_SERVICE_KEY", "\"${tagoKey.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
     }
