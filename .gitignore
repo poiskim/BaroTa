@@ -1,0 +1,12 @@
+.gradle/
+.idea/
+local.properties
+build/
+**/build/
+*.iml
+.DS_Store
+*.jks
+*.keystore
+
+# 개인 공공데이터 서비스키 (절대 커밋하지 않음)
+local.properties

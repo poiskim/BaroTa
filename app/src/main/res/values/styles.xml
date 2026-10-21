@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.BaroTa" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#F7F9FE</item>
+        <item name="android:navigationBarColor">#F7F9FE</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
