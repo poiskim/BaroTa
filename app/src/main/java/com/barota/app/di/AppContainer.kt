@@ -5,13 +5,16 @@ import com.barota.app.BuildConfig
 import com.barota.app.data.local.FavoritesLocalDataSource
 import com.barota.app.data.location.AndroidLocationRepository
 import com.barota.app.data.remote.api.GbisApi
+import com.barota.app.data.remote.api.TagoApi
 import com.barota.app.data.repository.DefaultFavoritesRepository
 import com.barota.app.data.repository.GbisTransitCatalogRepository
+import com.barota.app.data.repository.TagoTransitCatalogRepository
 import com.barota.app.data.repository.UnconfiguredArrivalRepository
 import com.barota.app.domain.repository.ArrivalRepository
 import com.barota.app.domain.repository.FavoritesRepository
 import com.barota.app.domain.repository.LocationRepository
 import com.barota.app.domain.repository.TransitCatalogRepository
+import com.barota.app.domain.repository.TagoTransitCatalog
 import com.barota.app.domain.usecase.RankFavoritesUseCase
 import com.barota.app.domain.usecase.ValidateRouteStopUseCase
 
@@ -22,5 +25,6 @@ class AppContainer(context: Context) {
     val arrivalRepository: ArrivalRepository = UnconfiguredArrivalRepository()
     val rankFavorites = RankFavoritesUseCase()
     val transitCatalog: TransitCatalogRepository = GbisTransitCatalogRepository(GbisApi(BuildConfig.GBIS_SERVICE_KEY))
+    val tagoCatalog: TagoTransitCatalog = TagoTransitCatalogRepository(TagoApi(BuildConfig.TAGO_SERVICE_KEY))
     val validateRouteStop = ValidateRouteStopUseCase(transitCatalog)
 }
