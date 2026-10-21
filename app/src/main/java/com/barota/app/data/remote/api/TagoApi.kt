@@ -62,3 +62,4 @@ class TagoApi(private val serviceKey: String) {
                 connection.disconnect()
             }
         }
+}
