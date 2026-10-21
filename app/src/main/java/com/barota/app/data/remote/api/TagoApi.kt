@@ -33,6 +33,13 @@ class TagoApi(private val serviceKey: String) {
             "pageNo" to page.toString(), "numOfRows" to size.toString())
     )
 
+    /** TAGO 정류소별 버스 도착 정보. 공식 문서는 arrtime을 초 단위로 정의한다. */
+    suspend fun getStationArrivals(cityCode: String, nodeId: String, page: Int, size: Int) = fetch(
+        "ArvlInfoInqireService/getSttnAcctoArvlPrearngeInfoList",
+        mapOf("cityCode" to cityCode, "nodeId" to nodeId,
+            "pageNo" to page.toString(), "numOfRows" to size.toString())
+    )
+
     private suspend fun fetch(path: String, params: Map<String, String>): String =
         withContext(Dispatchers.IO) {
             if (serviceKey.isBlank()) {
