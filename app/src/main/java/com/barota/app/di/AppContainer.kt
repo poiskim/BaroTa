@@ -9,6 +9,7 @@ import com.barota.app.data.remote.api.TagoApi
 import com.barota.app.data.repository.DefaultFavoritesRepository
 import com.barota.app.data.repository.GbisTransitCatalogRepository
 import com.barota.app.data.repository.TagoTransitCatalogRepository
+import com.barota.app.data.repository.TagoArrivalRepository
 import com.barota.app.data.repository.UnconfiguredArrivalRepository
 import com.barota.app.domain.repository.ArrivalRepository
 import com.barota.app.domain.repository.FavoritesRepository
@@ -22,9 +23,10 @@ import com.barota.app.domain.usecase.ValidateRouteStopUseCase
 class AppContainer(context: Context) {
     val favoritesRepository: FavoritesRepository = DefaultFavoritesRepository(FavoritesLocalDataSource(context))
     val locationRepository: LocationRepository = AndroidLocationRepository(context)
-    val arrivalRepository: ArrivalRepository = UnconfiguredArrivalRepository()
+    private val tagoApi = TagoApi(BuildConfig.TAGO_SERVICE_KEY)
+    val arrivalRepository: ArrivalRepository = TagoArrivalRepository(tagoApi)
     val rankFavorites = RankFavoritesUseCase()
     val transitCatalog: TransitCatalogRepository = GbisTransitCatalogRepository(GbisApi(BuildConfig.GBIS_SERVICE_KEY))
-    val tagoCatalog: TagoTransitCatalog = TagoTransitCatalogRepository(TagoApi(BuildConfig.TAGO_SERVICE_KEY))
+    val tagoCatalog: TagoTransitCatalog = TagoTransitCatalogRepository(tagoApi)
     val validateRouteStop = ValidateRouteStopUseCase(transitCatalog)
 }
