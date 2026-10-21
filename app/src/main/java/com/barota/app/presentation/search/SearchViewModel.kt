@@ -12,7 +12,7 @@ import com.barota.app.domain.model.TransitCity
 import com.barota.app.domain.model.TransitFavorite
 import com.barota.app.domain.model.TransitMode
 import com.barota.app.domain.model.TransitProvider
-import com.barota.app.domain.model.directionForStop
+import com.barota.app.domain.usecase.DescribeBusDirectionUseCase
 import com.barota.app.domain.repository.FavoritesRepository
 import com.barota.app.domain.repository.TagoTransitCatalog
 import com.barota.app.domain.repository.TransitCatalogRepository
@@ -206,7 +206,7 @@ class SearchViewModel(
                 favorites.save(TransitFavorite(
                     id = UUID.randomUUID().toString(), mode = TransitMode.BUS,
                     route = route.number, stop = verified.name,
-                    direction = directionForStop(snapshot.stops, verified),
+                    direction = DescribeBusDirectionUseCase()(route, snapshot.stops, verified),
                     anchor = verified.point,
                     officialRouteId = route.id, officialStationId = verified.stationId,
                     officialStationSeq = verified.stationSeq,
