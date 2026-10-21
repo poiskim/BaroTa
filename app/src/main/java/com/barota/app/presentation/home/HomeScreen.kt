@@ -100,7 +100,7 @@ fun HomeScreen(
             }
         }
         Text(
-            "공식 버스 노선·정류장 검색을 지원합니다(GBIS 키 필요). 실제 도착시간은 아직 연동하지 않았어요.",
+            "버스는 TAGO 또는 GBIS의 공식 노선·정류장을 검색해 저장할 수 있어요. 실제 도착시간은 아직 연동하지 않았어요.",
             modifier = Modifier.padding(bottom = 16.dp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodySmall
