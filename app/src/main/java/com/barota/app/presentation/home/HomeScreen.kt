@@ -84,16 +84,17 @@ fun HomeScreen(
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("나의 추천 경로", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            TextButton(onClick = onRefreshArrivals,
-                enabled = !state.arrivalRefreshing && state.items.isNotEmpty()) {
-                Text(if (state.arrivalRefreshing) "조회 중…" else "도착 새로고침")
-            }
             TextButton(onClick = { onSearch(null) }) { Text("+ 추가") }
+        }
+        if (state.items.isNotEmpty()) {
+            TextButton(onClick = onRefreshArrivals, enabled = !state.arrivalRefreshing) {
+                Text(if (state.arrivalRefreshing) "실시간 도착정보 조회 중…" else "↻ 실시간 도착정보 새로고침")
+            }
         }
         if (state.arrivalsCheckedAt != null) {
             val refreshed = java.text.SimpleDateFormat("HH:mm", java.util.Locale.KOREA)
                 .format(java.util.Date(state.arrivalsCheckedAt))
-            Text("도착정보 " + refreshed + " 기준 · 실시간 값은 변동될 수 있어요 (상위 15개 갱신)",
+            Text("도착정보 " + refreshed + " 기준 · 실시간 값은 변동될 수 있어요 (TAGO 최대 15개 갱신)",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
