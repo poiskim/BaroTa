@@ -50,7 +50,7 @@ fun FavoriteCard(
                 TextButton(onClick = onPin) { Text(if (item.isPinned) "★ 고정됨" else "☆ 고정") }
             }
             Text(item.stop, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text(if (item.isOfficiallyVerified) "✓ GBIS 공식 정류장 확인" else "미검증 경로 · 이전 수동 입력",
+            Text(if (item.isOfficiallyVerified) "✓ " + item.provider.label + " 공식 정류장 확인" else "미검증 경로 · 이전 수동 입력",
                 style = MaterialTheme.typography.labelMedium,
                 color = if (item.isOfficiallyVerified) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant)
