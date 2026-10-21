@@ -21,7 +21,9 @@ data class TransitFavorite(
     // null이면 v0.1에서 입력한 미검증 즐겨찾기 (하위 호환)
     val officialRouteId: String? = null,
     val officialStationId: String? = null,
-    val officialStationSeq: Int? = null
+    val officialStationSeq: Int? = null,
+    val provider: TransitProvider = TransitProvider.GBIS,
+    val officialCityCode: String? = null
 ) {
     val isOfficiallyVerified: Boolean
         get() = mode == TransitMode.BUS && officialRouteId != null &&
