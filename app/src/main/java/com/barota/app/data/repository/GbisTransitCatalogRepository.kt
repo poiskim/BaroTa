@@ -12,7 +12,7 @@ class GbisTransitCatalogRepository(
     private val api: GbisApi,
     private val parser: GbisXmlParser = GbisXmlParser()
 ) : TransitCatalogRepository {
-    override suspend fun searchBusRoutes(query: String): List<BusRoute> {
+    override suspend fun searchBusRoutes(query: String, cityCode: String?): List<BusRoute> {
         require(query.isNotBlank()) { "버스 번호를 입력해 주세요." }
         return parser.parseRoutes(api.findRoutes(query.trim())).map {
             BusRoute(it.routeId, it.routeName, it.regionName, it.startStationName, it.endStationName)
@@ -23,7 +23,7 @@ class GbisTransitCatalogRepository(
         )
     }
 
-    override suspend fun getRouteStops(routeId: String): List<RouteStop> {
+    override suspend fun getRouteStops(routeId: String, cityCode: String?): List<RouteStop> {
         require(routeId.isNotBlank())
         return parser.parseStops(api.getStops(routeId)).map {
             val point = if (it.latitude != null && it.longitude != null &&
