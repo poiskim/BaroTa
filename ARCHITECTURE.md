@@ -78,3 +78,17 @@ MainActivity (HomeViewModel + SearchViewModel, 화면 라우팅)
 주의: TAGO는 **노선 조회 시 도시코드 필수**입니다. GPS 주변 정류소 API는 도시 후보 선택에만 쓰고, 실제 노선 경유 및 방향은 선택한 노선의 경유정류장 목록으로 검증합니다. 사용자가 인접 도시 코드를 선택할 수 있습니다.
 
 본 버전은 검색·등록용이고, 실시간 도착정보와 모든 노선 자동 추천은 범위 밖입니다.
+
+
+## v0.4 — 실시간 도착예정정보 및 명확한 버스 방향
+
+- `data/remote/api/TagoApi`: 공식 TAGO 도착예정정보 API 호출 추가 (`cityCode + nodeId`).
+- `data/repository/TagoArrivalRepository`: `ArrivalRepository` 구현. 동일 정류장의 여러 즐겨찾기를 묶어 **한 정류장당 한 요청**만 수행하고 노선 ID로 필터링. 오류와 미연결을 구별. 탑승 정류장·노선 ID가 불확실한 기록에는 실시간 값을 표시하지 않음.
+- `data/repository/TagoArrivalMapper`: 초 단위 도착정보를 분 단위로 변환하는 순수 코드. 실제 차량 응답이 비면 `NoPrediction`.
+- `domain/usecase/DescribeBusDirectionUseCase`: 경유 순서·기점·종점을 사용해 회차 전후 방향을 구별. 불확실한 노선은 `방향 확인 필요`로 표시하고 다음 정류장만 보조로 표기.
+- `domain/usecase/RankFavoritesUseCase`: 기존 GPS 거리·고정·조회수 기준 유지. 주변 TAGO 정류장과 **같은 도시코드 + 같은 nodeid**의 저장 항목에 가산점 부여.
+- `presentation/home/HomeViewModel`: 홈 진입 시 갱신 버튼 및 화면 진입 자동 조회, 진행·마지막 조회 시각 관리. 최대 15건까지만 갱신. 위치 조회 실패 시 기존 거리 순위 유지.
+- `presentation/components/FavoriteCard`: TAGO 실시간 ETA/다음차, 조회 전, 무응답, 미연결, 실패의 모든 상태 표시.
+- `presentation/search/SearchViewModel`: 새로 선택한 정류장의 방향 문자열을 계산해 저장. v0.3 기존 즐겨찾기는 자동 변경하지 않으며 같은 정류장 재저장으로 갱신할 수 있음.
+
+**보장하지 않는 것:** 버스 정류장 근접=해당 노선의 실시간 운행정보 제공, GPS 주변 모든 버스 자동 목록 생성, TAGO 외 제공처 도착예정 조회, 실서버 100% 커버리지.

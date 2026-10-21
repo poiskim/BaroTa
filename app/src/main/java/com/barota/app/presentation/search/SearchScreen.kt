@@ -35,7 +35,7 @@ import com.barota.app.domain.model.GeoPoint
 import com.barota.app.domain.model.RouteStop
 import com.barota.app.domain.model.TransitMode
 import com.barota.app.domain.model.TransitProvider
-import com.barota.app.domain.model.directionForStop
+import com.barota.app.domain.usecase.DescribeBusDirectionUseCase
 
 @Composable
 fun SearchScreen(
@@ -218,14 +218,14 @@ fun SearchScreen(
                                 Text("${if (selected) "✓ " else ""}${stop.name}", fontWeight = FontWeight.SemiBold)
                                 Text("정류장번호 ${stop.mobileNo ?: "-"} · 순번 ${stop.stationSeq}" +
                                     " · ${stop.regionName}", style = MaterialTheme.typography.bodySmall)
-                                Text("${directionForStop(state.stops, stop)}", style = MaterialTheme.typography.bodySmall,
+                                Text(DescribeBusDirectionUseCase()(selectedRoute, state.stops, stop), style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
                     if (matched.size > 40) Text("전체 결과 중 처음 40개만 표시해요. 정류장 이름으로 좁혀 주세요.")
                     state.selectedStop?.let { selected ->
-                        Text("선택: ${selected.name} (${directionForStop(state.stops, selected)})",
+                        Text("선택: ${selected.name} (${DescribeBusDirectionUseCase()(selectedRoute, state.stops, selected)})",
                             fontWeight = FontWeight.SemiBold)
                         Button(onClick = onSaveSelectedStop, enabled = !state.saving,
                             modifier = Modifier.fillMaxWidth()) {
@@ -235,7 +235,7 @@ fun SearchScreen(
                 }
             }
             Text("정식 노선·정류장 ID와 순번을 검증해 저장해요. " +
-                "도착 예정시간은 다음 버전에서 연결됩니다.",
+                "실시간 도착시간은 TAGO 즐겨찾기에서 조회할 수 있어요.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {

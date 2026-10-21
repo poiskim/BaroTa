@@ -90,6 +90,7 @@ private fun BaroTaAppScreen(viewModel: HomeViewModel, searchVm: SearchViewModel)
             HomeScreen(
                 state = state,
                 onLocate = requestLocation,
+                onRefreshArrivals = viewModel::refreshArrivals,
                 onSearch = { selected ->
                     if (selected == null) searchVm.reset() else searchVm.searchRoutes(selected)
                     tab = 1
@@ -121,8 +122,10 @@ private fun BaroTaAppScreen(viewModel: HomeViewModel, searchVm: SearchViewModel)
 
     detail?.let { selected ->
         val message = when (val arrival = selected.arrival) {
-            ArrivalStatus.NotConnected -> "실시간 도착정보는 아직 연결되지 않았어요."
-            is ArrivalStatus.Available -> "${arrival.minutes}분 후 도착" +
+            ArrivalStatus.NotConnected -> "이 경로의 실시간 도착정보는 연결되지 않았어요."
+            ArrivalStatus.Loading -> "TAGO 도착정보 조회 중…"
+            ArrivalStatus.NoPrediction -> "현재 이 노선의 도착예정 차량 정보가 없어요."
+            is ArrivalStatus.Available -> (if (arrival.minutes == 0) "곧 도착" else "${arrival.minutes}분 후 도착") +
                 (arrival.nextMinutes?.let { " · 다음 차 ${it}분" } ?: "")
             is ArrivalStatus.Failure -> arrival.message
         }

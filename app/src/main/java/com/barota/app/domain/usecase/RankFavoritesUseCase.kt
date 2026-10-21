@@ -1,6 +1,8 @@
 package com.barota.app.domain.usecase
 
 import com.barota.app.domain.model.GeoPoint
+import com.barota.app.domain.model.NearbyTransitStop
+import com.barota.app.domain.model.TransitProvider
 import com.barota.app.domain.model.RecommendedFavorite
 import com.barota.app.domain.model.TransitFavorite
 import kotlin.math.asin
@@ -16,12 +18,17 @@ class RankFavoritesUseCase {
     fun rank(
         favorites: List<TransitFavorite>,
         here: GeoPoint?,
-        now: Long = System.currentTimeMillis()
+        now: Long = System.currentTimeMillis(),
+        nearbyStops: List<NearbyTransitStop> = emptyList()
     ): List<RecommendedFavorite> {
         return favorites.map { item ->
             val distance = if (here != null && item.anchor != null) {
                 distanceMeters(here, item.anchor)
             } else null
+            val nearOfficialStop = here != null && item.provider == TransitProvider.TAGO &&
+                item.isOfficiallyVerified && nearbyStops.any { stop ->
+                    stop.stationId == item.officialStationId && stop.cityCode == item.officialCityCode
+                }
             val proximity = when {
                 distance == null -> 0.0
                 distance <= 300 -> 80.0
@@ -35,8 +42,10 @@ class RankFavoritesUseCase {
                 val days = (now - item.lastViewedAt) / 86_400_000.0
                 (12.0 - days).coerceAtLeast(0.0)
             } else 0.0
-            val score = proximity + usage + freshness + if (item.isPinned) 50.0 else 0.0
+            val score = proximity + usage + freshness + (if (item.isPinned) 50.0 else 0.0) +
+                (if (nearOfficialStop) 120.0 else 0.0)
             val reason = when {
+                nearOfficialStop -> "주변 TAGO 정류장과 실제로 일치해요"
                 distance != null && distance <= 800 -> "지금 위치와 가까워요"
                 item.isPinned -> "상단 고정"
                 item.viewCount >= 3 -> "자주 확인한 경로"
