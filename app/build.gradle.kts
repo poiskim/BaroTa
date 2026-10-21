@@ -12,6 +12,7 @@ val localProps = Properties().apply {
     if (file.exists()) file.inputStream().use { load(it) }
 }
 val gbisKey: String = localProps.getProperty("GBIS_SERVICE_KEY", "").trim()
+val tagoKey: String = localProps.getProperty("TAGO_SERVICE_KEY", "").trim()
 
 android {
     namespace = "com.barota.app"
@@ -21,9 +22,10 @@ android {
         applicationId = "com.barota.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.3.0"
         buildConfigField("String", "GBIS_SERVICE_KEY", "\"${gbisKey.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
+        buildConfigField("String", "TAGO_SERVICE_KEY", "\"${tagoKey.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
     }
 
     buildTypes {

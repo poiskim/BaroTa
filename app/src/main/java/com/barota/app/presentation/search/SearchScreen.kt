@@ -2,14 +2,18 @@ package com.barota.app.presentation.search
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -20,7 +24,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,12 +34,17 @@ import com.barota.app.domain.model.BusRoute
 import com.barota.app.domain.model.GeoPoint
 import com.barota.app.domain.model.RouteStop
 import com.barota.app.domain.model.TransitMode
+import com.barota.app.domain.model.TransitProvider
 import com.barota.app.domain.model.directionForStop
 
 @Composable
 fun SearchScreen(
     state: SearchUiState,
     currentLocation: GeoPoint?,
+    onProviderChange: (TransitProvider) -> Unit,
+    onCityCodeChange: (String) -> Unit,
+    onRefreshCities: () -> Unit,
+    onFindNearbyCities: () -> Unit,
     onUpdateQuery: (String) -> Unit,
     onSearchRoutes: (String) -> Unit,
     onSelectRoute: (BusRoute) -> Unit,
@@ -46,6 +55,7 @@ fun SearchScreen(
     modifier: Modifier = Modifier
 ) {
     var mode by rememberSaveable { mutableStateOf(TransitMode.BUS) }
+    var cityMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var subwayLine by rememberSaveable { mutableStateOf("") }
     var subwayStop by rememberSaveable { mutableStateOf("") }
     var subwayDirection by rememberSaveable { mutableStateOf("") }
@@ -55,7 +65,7 @@ fun SearchScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text("경로 검색·추가", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text("버스는 공식 GBIS 노선과 경유 정류장을 선택해야 저장돼요.",
+        Text("버스는 TAGO 또는 GBIS에서 공식 노선·정류장을 선택해 저장해요.",
             color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -68,6 +78,61 @@ fun SearchScreen(
         }
 
         if (mode == TransitMode.BUS) {
+            Text("버스정보 제공처", fontWeight = FontWeight.SemiBold)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TransitProvider.entries.forEach { provider ->
+                    FilterChip(selected = state.provider == provider,
+                        onClick = { onProviderChange(provider) },
+                        label = { Text(provider.label) })
+                }
+            }
+            if (state.provider == TransitProvider.TAGO) {
+                Text("TAGO 노선 검색은 도시코드가 필요해요. 다른 지역에서 출발한 버스는 해당 도시도 확인하세요.",
+                    style = MaterialTheme.typography.bodySmall)
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box {
+                        TextButton(onClick = { cityMenuExpanded = true }) {
+                            val name = state.cities.firstOrNull { it.code == state.cityCode }?.name
+                                ?: "직접 지정"
+                            Text("도시 선택: " + name + " (" + state.cityCode + ") ▾")
+                        }
+                        DropdownMenu(expanded = cityMenuExpanded,
+                            onDismissRequest = { cityMenuExpanded = false },
+                            modifier = Modifier.heightIn(max = 320.dp)) {
+                            state.cities.forEach { city ->
+                                DropdownMenuItem(
+                                    text = { Text(city.name + " (" + city.code + ")") },
+                                    onClick = {
+                                        onCityCodeChange(city.code)
+                                        cityMenuExpanded = false
+                                    })
+                            }
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = state.cityCode, onValueChange = onCityCodeChange,
+                    modifier = Modifier.fillMaxWidth(), label = { Text("도시코드 (직접 입력 가능)") },
+                    singleLine = true, placeholder = { Text("예: 구리 31120") })
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = onRefreshCities, enabled = !state.loadingCities) {
+                        Text(if (state.loadingCities) "도시 목록 조회 중…" else "도시 목록 새로고침")
+                    }
+                    TextButton(onClick = onFindNearbyCities, enabled = !state.loadingNearby) {
+                        Text(if (state.loadingNearby) "주변 확인 중…" else "GPS 근처 도시 찾기")
+                    }
+                }
+                if (state.nearbyStops.isNotEmpty()) {
+                    Text("내 주변 TAGO 정류장 (500m, 일부)", fontWeight = FontWeight.SemiBold)
+                    state.nearbyStops.take(6).forEach { nearby ->
+                        Text("• " + nearby.name + " · 도시코드 " + nearby.cityCode,
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text("이 정류장을 경유하는 노선인지 저장 전에 다시 확인해요.",
+                        style = MaterialTheme.typography.bodySmall)
+                }
+            }
             Text("자주 검색하는 버스", fontWeight = FontWeight.SemiBold)
             Row(modifier = Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -116,7 +181,7 @@ fun SearchScreen(
                                     fontWeight = FontWeight.Bold)
                                 Text("${route.startStationName} → ${route.endStationName}",
                                     style = MaterialTheme.typography.bodySmall)
-                                Text("노선 ID: ${route.id}", style = MaterialTheme.typography.labelSmall)
+                                Text("제공처: " + route.provider.label + " · 노선 ID: " + route.id, style = MaterialTheme.typography.labelSmall)
                             }
                         }
                     }
@@ -169,7 +234,7 @@ fun SearchScreen(
                     }
                 }
             }
-            Text("버스는 이름을 임의로 입력해 저장하지 않아요. 공식 ID와 정류장 순번을 검증해요. " +
+            Text("정식 노선·정류장 ID와 순번을 검증해 저장해요. " +
                 "도착 예정시간은 다음 버전에서 연결됩니다.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)

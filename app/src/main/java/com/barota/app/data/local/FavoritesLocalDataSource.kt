@@ -9,6 +9,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.barota.app.domain.model.GeoPoint
 import com.barota.app.domain.model.TransitFavorite
 import com.barota.app.domain.model.TransitMode
+import com.barota.app.domain.model.TransitProvider
 import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -57,7 +58,10 @@ class FavoritesLocalDataSource(context: Context) {
                     officialStationId = if (obj.has("officialStationId") && !obj.isNull("officialStationId"))
                         obj.optString("officialStationId").ifBlank { null } else null,
                     officialStationSeq = if (obj.has("officialStationSeq") && !obj.isNull("officialStationSeq"))
-                        obj.optInt("officialStationSeq") else null
+                        obj.optInt("officialStationSeq") else null,
+                    provider = runCatching { TransitProvider.valueOf(obj.optString("provider", "GBIS")) }
+                        .getOrDefault(TransitProvider.GBIS),
+                    officialCityCode = obj.optString("officialCityCode").takeUnless { it.isBlank() || it == "null" }
                 )
             }
         }
@@ -84,6 +88,8 @@ class FavoritesLocalDataSource(context: Context) {
                 put("officialRouteId", item.officialRouteId ?: JSONObject.NULL)
                 put("officialStationId", item.officialStationId ?: JSONObject.NULL)
                 put("officialStationSeq", item.officialStationSeq ?: JSONObject.NULL)
+                put("provider", item.provider.name)
+                put("officialCityCode", item.officialCityCode ?: JSONObject.NULL)
             })
         }
         return array.toString()

@@ -56,3 +56,25 @@ MainActivity (HomeViewModel + SearchViewModel, 화면 라우팅)
 - 방향은 다음 정류장 이름 기반; 같은 정류장명이 반복될 수 있어 `(stationId, stationSeq)` 조합 저장.
 - v0.1 즐겨찾기에는 공식 ID가 없으므로 자동으로 `검증됨` 표시하지 않음.
 - 코드는 샘플 XML 기반 단위 테스트로 구조를 검증할 수 있지만, 라이브 API와 기기 동작은 개인 키가 있는 실제 환경에서 점검 필요.
+
+
+## v0.3 — TAGO / GBIS 병행 아키텍처
+
+**사용자 화면 → SearchViewModel → TransitCatalogRepository / TagoTransitCatalog → API + Parser** 구조는 유지합니다.
+
+- `domain/model/TransitProvider.kt`: `TAGO` 및 `GBIS`를 식별합니다.
+- `domain/model/BusRoute.kt`: 제공처와 도시코드를 추가합니다. 동일 노선번호를 고유 노선으로 잘못 취급하지 않습니다.
+- `domain/repository/TransitCatalogRepository.kt`: 두 공급자가 구현하는 노선/경유정류장 공통 계약입니다. 선택적 도시코드를 지원합니다.
+- `domain/repository/TagoTransitCatalog.kt`: TAGO만 제공하는 도시목록/GPS 근처 정류장 조회를 추가한 계약입니다.
+- `data/remote/api/TagoApi.kt`: TAGO HTTP 통신·키 인코딩·타임아웃.
+- `data/remote/dto/TagoXmlParser.kt`: XML 정규화·페이징 헤더·인증 오류 검사.
+- `data/repository/TagoTransitCatalogRepository.kt`: TAGO 행을 `BusRoute`, `RouteStop`, `TransitCity`, `NearbyTransitStop`으로 변환.
+- `presentation/search/SearchViewModel.kt`: 선택된 제공처를 분기하고 도시 및 GPS 주변 정류장으로 도시코드를 고릅니다.
+- `domain/usecase/ValidateRouteStopUseCase.kt`: 제공처별 Repository로 노선+정류장+순번을 다시 검증합니다.
+- `data/local/FavoritesLocalDataSource.kt`: 기존 JSON에 `provider`, `officialCityCode` 추가; 이전 레코드 기본은 GBIS.
+- `data/repository/DefaultFavoritesRepository.kt`: 중복 판단에 제공처+도시코드도 포함.
+- `di/AppContainer.kt`: Hilt 도입 없이 TAGO/GBIS 두 Repo를 생성하여 주입합니다.
+
+주의: TAGO는 **노선 조회 시 도시코드 필수**입니다. GPS 주변 정류소 API는 도시 후보 선택에만 쓰고, 실제 노선 경유 및 방향은 선택한 노선의 경유정류장 목록으로 검증합니다. 사용자가 인접 도시 코드를 선택할 수 있습니다.
+
+본 버전은 검색·등록용이고, 실시간 도착정보와 모든 노선 자동 추천은 범위 밖입니다.
