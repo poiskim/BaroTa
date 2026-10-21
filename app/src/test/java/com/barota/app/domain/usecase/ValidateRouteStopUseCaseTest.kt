@@ -12,8 +12,8 @@ import org.junit.Test
 class ValidateRouteStopUseCaseTest {
     private class FakeCatalog(val stops: List<RouteStop> = emptyList(), val failure: Boolean = false) :
         TransitCatalogRepository {
-        override suspend fun searchBusRoutes(query: String): List<BusRoute> = emptyList()
-        override suspend fun getRouteStops(routeId: String): List<RouteStop> {
+        override suspend fun searchBusRoutes(query: String, cityCode: String?): List<BusRoute> = emptyList()
+        override suspend fun getRouteStops(routeId: String, cityCode: String?): List<RouteStop> {
             if (failure) throw IOException("network unavailable")
             return stops
         }
