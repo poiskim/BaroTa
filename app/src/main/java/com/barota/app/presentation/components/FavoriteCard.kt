@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.barota.app.domain.model.ArrivalStatus
 import com.barota.app.domain.model.RecommendedFavorite
 import com.barota.app.domain.model.TransitMode
 import kotlin.math.roundToInt
@@ -27,6 +28,7 @@ import kotlin.math.roundToInt
 @Composable
 fun FavoriteCard(
     recommended: RecommendedFavorite,
+    arrival: ArrivalStatus?,
     onDetail: () -> Unit,
     onPin: () -> Unit,
     onDelete: () -> Unit
@@ -68,10 +70,25 @@ fun FavoriteCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary
             )
+            val arrivalText = when (arrival) {
+                null -> "도착정보 조회 전"
+                ArrivalStatus.Loading -> "도착정보 조회 중…"
+                ArrivalStatus.NoPrediction -> "현재 도착예정 차량 정보 없음"
+                ArrivalStatus.NotConnected -> "이 경로의 실시간 도착정보 미연결"
+                is ArrivalStatus.Failure -> arrival.message
+                is ArrivalStatus.Available -> {
+                    (if (arrival.minutes == 0) "곧 도착" else arrival.minutes.toString() + "분 후 도착") +
+                        (arrival.nextMinutes?.let { " · 다음 " + it + "분" } ?: "")
+                }
+            }
             Text(
-                "실시간 도착정보 연결 전",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                arrivalText,
+                style = if (arrival is ArrivalStatus.Available) MaterialTheme.typography.titleMedium
+                    else MaterialTheme.typography.bodySmall,
+                fontWeight = if (arrival is ArrivalStatus.Available) FontWeight.Bold else FontWeight.Normal,
+                color = if (arrival is ArrivalStatus.Failure) MaterialTheme.colorScheme.error
+                    else if (arrival is ArrivalStatus.Available) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = onDetail) { Text("경로 상세") }
