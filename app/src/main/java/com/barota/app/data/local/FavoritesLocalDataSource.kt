@@ -61,7 +61,7 @@ class FavoritesLocalDataSource(context: Context) {
                         obj.optInt("officialStationSeq") else null,
                     provider = runCatching { TransitProvider.valueOf(obj.optString("provider", "GBIS")) }
                         .getOrDefault(TransitProvider.GBIS),
-                    officialCityCode = obj.optString("officialCityCode").ifBlank { null }
+                    officialCityCode = obj.optString("officialCityCode").takeUnless { it.isBlank() || it == "null" }
                 )
             }
         }
