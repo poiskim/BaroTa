@@ -10,6 +10,7 @@ import com.barota.app.domain.model.NearbyTransitStop
 import com.barota.app.domain.model.RecommendedFavorite
 import com.barota.app.domain.model.TransitFavorite
 import com.barota.app.domain.model.TransitMode
+import com.barota.app.domain.model.TransitProvider
 import com.barota.app.domain.repository.ArrivalRepository
 import com.barota.app.domain.repository.FavoritesRepository
 import com.barota.app.domain.repository.LocationRepository
@@ -106,9 +107,15 @@ class HomeViewModel(
             try {
                 // 과도한 대량 요청과 호출 한도 소진을 피한다. 우선순위 상위 15개만 갱신.
                 val favorites = favoritesRepository.favorites.first()
-                val chosen = rankUseCase.rank(favorites, location.value,
-                    nearbyStops = nearbyStops.value).take(15).map { it.favorite }
-                val statuses = arrivalRepository.getArrivals(chosen)
+                val ranked = rankUseCase.rank(favorites, location.value,
+                    nearbyStops = nearbyStops.value).map { it.favorite }
+                val eligible = ranked.filter {
+                    it.mode == TransitMode.BUS && it.provider == TransitProvider.TAGO &&
+                        it.isOfficiallyVerified && !it.officialCityCode.isNullOrBlank()
+                }
+                val unsupported = ranked.filterNot { it in eligible }
+                    .associate { it.id to ArrivalStatus.NotConnected }
+                val statuses = unsupported + arrivalRepository.getArrivals(eligible.take(15))
                 arrivalSnapshot.value = ArrivalSnapshot(
                     statuses = statuses, loading = false, checkedAt = System.currentTimeMillis())
             } catch (e: CancellationException) { throw e }
