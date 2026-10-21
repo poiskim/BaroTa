@@ -14,6 +14,8 @@ class DefaultFavoritesRepository(
         local.update { items ->
             val sameStop = items.firstOrNull { existing ->
                 item.isOfficiallyVerified && existing.isOfficiallyVerified &&
+                    existing.provider == item.provider &&
+                    existing.officialCityCode == item.officialCityCode &&
                     existing.officialRouteId == item.officialRouteId &&
                     existing.officialStationId == item.officialStationId &&
                     existing.officialStationSeq == item.officialStationSeq
