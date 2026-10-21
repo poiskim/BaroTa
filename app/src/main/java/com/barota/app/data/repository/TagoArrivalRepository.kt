@@ -12,6 +12,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 /**
  * 같은 TAGO 정류장(도시코드 + nodeId)을 공유하는 즐겨찾기는 API를 한 번만 호출한다.
@@ -37,10 +39,11 @@ class TagoArrivalRepository(
             val groups = supported.groupBy {
                 StopKey(requireNotNull(it.officialCityCode), requireNotNull(it.officialStationId))
             }
+            val limit = Semaphore(3) // 공공 API의 초당 호출 제한을 고려해 동시 요청 수 제한
             val perStop = groups.map { (stop, saved) ->
                 async {
                     val statuses = try {
-                        val rows = getRows(stop)
+                        val rows = limit.withPermit { getRows(stop) }
                         saved.associate { item ->
                             item.id to mapper.map(rows, requireNotNull(item.officialRouteId), stop.nodeId)
                         }
