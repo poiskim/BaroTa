@@ -18,7 +18,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
@@ -103,6 +103,10 @@ private fun BaroTaAppScreen(viewModel: HomeViewModel, searchVm: SearchViewModel)
             SearchScreen(
                 state = searchState,
                 currentLocation = state.location,
+                onProviderChange = searchVm::setProvider,
+                onCityCodeChange = searchVm::setCityCode,
+                onRefreshCities = searchVm::loadCities,
+                onFindNearbyCities = { searchVm.findNearbyCities(state.location) },
                 onUpdateQuery = searchVm::updateQuery,
                 onSearchRoutes = searchVm::searchRoutes,
                 onSelectRoute = searchVm::selectRoute,
@@ -126,7 +130,7 @@ private fun BaroTaAppScreen(viewModel: HomeViewModel, searchVm: SearchViewModel)
             onDismissRequest = viewModel::closeDetail,
             title = { Text("${selected.item.route} · ${selected.item.stop}") },
             text = { Text("${selected.item.direction}\n\n" +
-                (if (selected.item.isOfficiallyVerified) "공식 GBIS 노선·정류장 검증됨" else "미검증·기존 수동 입력") +
+                (if (selected.item.isOfficiallyVerified) "공식 " + selected.item.provider.label + " 노선·정류장 검증됨" else "미검증·기존 수동 입력") +
                 "\n\n$message\n\n조회 횟수는 추천에 반영됩니다.") },
             confirmButton = { TextButton(onClick = viewModel::closeDetail) { Text("닫기") } }
         )
